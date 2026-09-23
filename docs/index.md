@@ -11,7 +11,9 @@
 
 玩家能力：**二段跳**、**冲刺**、**贴墙下滑 + 贴墙跳**（必须跳到对面的墙才能再次贴墙/贴墙跳，落地后重置）。
 
-**状态图例：** ⬜ 未开始 · 🟨 进行中 · ✅ 完成 — 直接编辑本文件更新状态和负责人。
+**状态图例：** ⬜ 未开始 · 🟨 进行中（已分配负责人） · ✅ 完成（Issue 已关闭）
+
+**怎么用：** 点某一行的 **⬜ 认领**，会打开一个已经填好标题的 GitHub Issue，提交即可；在 Issue 里分配负责人，做完后关闭 Issue，刷新本页状态就会更新。
 
 ---
 
@@ -98,6 +100,11 @@
     background: #159957; color: #fff !important; font-weight: bold; text-decoration: none !important;
   }
   .art-add:hover { background: #127a46; }
+  .code-claim {
+    display: inline-block; padding: 0 0.5rem; border: 1px solid #159957; border-radius: 0.3rem;
+    white-space: nowrap; text-decoration: none !important;
+  }
+  .code-claim:hover { background: #eef5f1; }
   .art-done td { color: #999; }
   .art-done td a { text-decoration: line-through; }
   .art-tag {
@@ -128,13 +135,68 @@
     var m = new RegExp('###\\s*' + label + '\\s*\\n+([^\\n]+)').exec(body || '');
     return m && m[1].trim() !== '_No response_' ? m[1].trim() : '';
   }
-  fetch('https://api.github.com/repos/' + repo + '/issues?labels=art&state=all&per_page=100')
-    .then(function (r) {
-      if (!r.ok) throw new Error(r.status);
-      return r.json();
-    })
+  // 一次取回全部 Issue（每页 100 个，最多 5 页），编程和美术两个板块共用
+  function fetchAll(page, acc) {
+    return fetch('https://api.github.com/repos/' + repo + '/issues?state=all&per_page=100&page=' + page)
+      .then(function (r) {
+        if (!r.ok) throw new Error(r.status);
+        return r.json();
+      })
+      .then(function (batch) {
+        acc = acc.concat(batch);
+        return (batch.length === 100 && page < 5) ? fetchAll(page + 1, acc) : acc;
+      });
+  }
+  function hasLabel(issue, name) {
+    return issue.labels.some(function (l) { return l.name === name; });
+  }
+  function whoOf(issue) {
+    return issue.assignees.map(function (a) { return esc(a.login); }).join(', ');
+  }
+  // 编程表格：按标题「[编程 #N]」把 Issue 对应到第 N 行，填入状态和负责人
+  function fillCodeTables(issues) {
+    var byTask = {};
+    issues.forEach(function (i) {
+      var m = /^\[编程\s*#(\d+)\]/.exec(i.title);
+      if (!m) return;
+      var prev = byTask[m[1]];
+      // 同一项有多个 Issue 时，优先用未关闭的，其次用最新的
+      if (!prev || (prev.state === 'closed' && i.state === 'open') ||
+          (prev.state === i.state && i.number > prev.number)) {
+        byTask[m[1]] = i;
+      }
+    });
+    var page = location.href.split('#')[0];
+    document.querySelectorAll('table').forEach(function (table) {
+      if (root.contains(table)) return;
+      table.querySelectorAll('tbody tr').forEach(function (tr) {
+        var td = tr.children;
+        if (td.length < 4 || !/^\d+$/.test(td[0].textContent.trim())) return;
+        var n = td[0].textContent.trim();
+        var issue = byTask[n];
+        if (!issue) {
+          var title = '[编程 #' + n + '] ' + td[3].textContent.trim();
+          var body = '编程任务清单第 ' + n + ' 项：' + page + '#coding';
+          var url = base + '/issues/new?labels=code&title=' + encodeURIComponent(title) +
+            '&body=' + encodeURIComponent(body);
+          td[1].innerHTML = '<a class="code-claim" href="' + esc(url) + '">⬜ 认领</a>';
+          td[2].innerHTML = '';
+          return;
+        }
+        var done = issue.state === 'closed';
+        var who = whoOf(issue);
+        td[1].innerHTML = (done ? '✅' : (who ? '🟨' : '⬜')) +
+          ' <a href="' + esc(issue.html_url) + '">#' + issue.number + '</a>';
+        td[2].innerHTML = who;
+        if (done) tr.classList.add('art-done');
+      });
+    });
+  }
+  fetchAll(1, [])
     .then(function (issues) {
       issues = issues.filter(function (i) { return !i.pull_request; });
+      fillCodeTables(issues);
+      issues = issues.filter(function (i) { return hasLabel(i, 'art'); });
       if (issues.length === 0) {
         list.innerHTML = '<p>还没有美术任务，点上面的 ＋ 添加第一个。</p>';
         return;
