@@ -1,0 +1,45 @@
+name: 美术任务
+description: 添加一项美术 / 音频任务，会显示在任务清单网页的「美术任务」板块
+title: "[美术] "
+labels: ["art"]
+body:
+  - type: dropdown
+    id: category
+    attributes:
+      label: 类型
+      options:
+        - 角色精灵图 / 动画
+        - 图块 / Tileset
+        - 背景
+        - 陷阱 / 机关
+        - 特效
+        - 音效 / 音乐
+        - 其他
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: 任务描述
+      description: 要做什么、给谁用
+      placeholder: 例：角色的 wallslide 动画，4 帧，朝右
+    validations:
+      required: true
+  - type: input
+    id: spec
+    attributes:
+      label: 规格
+      description: 尺寸、帧数、格式等（和 config.xml / .tsx 对应）
+      placeholder: 例：32×32，4 帧，PNG
+  - type: input
+    id: related
+    attributes:
+      label: 对应的编程任务
+      description: 编程清单里的编号
+      placeholder: 例：#12、#26
+  - type: input
+    id: license
+    attributes:
+      label: 来源 / 授权
+      description: 自己画的，或者素材网站链接和授权类型（发布时授权文件要放在素材旁边）
+      placeholder: 例：Kenney, CC0

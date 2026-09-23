@@ -1,0 +1,6 @@
+remote_theme: pages-themes/cayman@v0.2.0
+plugins:
+- jekyll-remote-theme
+
+title: Platformer — Assignment 1 编程任务清单
+description: 804237 DESVJ · Video Game Development · CITM UPC · 2026-27 — 按由易到难排列的编程任务、可用资源与依赖关系。
