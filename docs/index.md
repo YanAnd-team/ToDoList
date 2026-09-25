@@ -83,7 +83,7 @@
 
 # 美术任务 {#art}
 
-点 **＋** 在 GitHub 上新建一个美术任务（会自动带上 `art` 标签），刷新本页就能看到。在 Issue 里分配负责人；做完后把 Issue **关闭**，状态就会变成 ✅。
+点 **＋** 在 GitHub 上新建一个美术任务（会自动带上 `art` 标签），刷新本页就能看到。还没人负责的任务会显示 **⬜ 认领**，点它打开 Issue，在右侧 Assignees 点 *assign yourself* 即可；做完后把 Issue **关闭**，状态就会变成 ✅。
 
 <div id="art-tasks" data-repo="{{ site.github.repository_nwo }}">
   <p class="art-toolbar">
@@ -216,7 +216,8 @@
         var title = i.title.replace(/^\[美术\]\s*/, '');
         return '<tr' + (done ? ' class="art-done"' : '') + '>' +
           '<td>' + i.number + '</td>' +
-          '<td>' + (done ? '✅' : (who ? '🟨' : '⬜')) + '</td>' +
+          '<td>' + (done ? '✅' : (who ? '🟨' :
+            '<a class="code-claim" href="' + esc(i.html_url) + '" title="打开 Issue，在右侧 Assignees 点 assign yourself">⬜ 认领</a>')) + '</td>' +
           '<td>' + (who || '') + '</td>' +
           '<td>' + esc(field(i.body, '类型')) + '</td>' +
           '<td><a href="' + esc(i.html_url) + '">' + esc(title) + '</a> ' + tags + '</td>' +
