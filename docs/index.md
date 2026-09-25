@@ -13,7 +13,7 @@
 
 **状态图例：** ⬜ 未开始 · 🟨 进行中（已分配负责人） · ✅ 完成（Issue 已关闭）
 
-**怎么用：** 点某一行的 **⬜ 认领**，会打开一个已经填好标题的 GitHub Issue，提交即可；在 Issue 里分配负责人，做完后关闭 Issue，刷新本页状态就会更新。
+**怎么用：** 点某一行的 **⬜ 认领**，会打开一个已经填好标题的 GitHub Issue，提交即可；在 Issue 里分配负责人。做完后点这一行的 **🟨 完成 →**，在打开的 Issue 页面点 *Close issue*，刷新本页状态就会更新。
 
 ---
 
@@ -83,7 +83,7 @@
 
 # 美术任务 {#art}
 
-点 **＋** 在 GitHub 上新建一个美术任务（会自动带上 `art` 标签），刷新本页就能看到。还没人负责的任务会显示 **⬜ 认领**，点它打开 Issue，在右侧 Assignees 点 *assign yourself* 即可；做完后把 Issue **关闭**，状态就会变成 ✅。
+点 **＋** 在 GitHub 上新建一个美术任务（会自动带上 `art` 标签），刷新本页就能看到。还没人负责的任务会显示 **⬜ 认领**，点它打开 Issue，在右侧 Assignees 点 *assign yourself* 即可；做完后点 **🟨 完成 →**，在 Issue 页面点 *Close issue*，状态就会变成 ✅。
 
 <div id="art-tasks" data-repo="{{ site.github.repository_nwo }}">
   <p class="art-toolbar">
@@ -153,6 +153,11 @@
   function whoOf(issue) {
     return issue.assignees.map(function (a) { return esc(a.login); }).join(', ');
   }
+  // 已认领未完成的任务显示「完成 →」，跳到 Issue 页面去点 Close issue
+  function doneLink(issue) {
+    return '<a class="code-claim" href="' + esc(issue.html_url) +
+      '" title="打开 Issue，点 Close issue 标记完成">🟨 完成 →</a>';
+  }
   // 编程表格：按标题「[编程 #N]」把 Issue 对应到第 N 行，填入状态和负责人
   function fillCodeTables(issues) {
     var byTask = {};
@@ -185,7 +190,7 @@
         }
         var done = issue.state === 'closed';
         var who = whoOf(issue);
-        td[1].innerHTML = (done ? '✅' : (who ? '🟨' : '⬜')) +
+        td[1].innerHTML = (done ? '✅' : (who ? doneLink(issue) : '⬜')) +
           ' <a href="' + esc(issue.html_url) + '">#' + issue.number + '</a>';
         td[2].innerHTML = who;
         if (done) tr.classList.add('art-done');
@@ -216,7 +221,7 @@
         var title = i.title.replace(/^\[美术\]\s*/, '');
         return '<tr' + (done ? ' class="art-done"' : '') + '>' +
           '<td>' + i.number + '</td>' +
-          '<td>' + (done ? '✅' : (who ? '🟨' :
+          '<td>' + (done ? '✅' : (who ? doneLink(i) :
             '<a class="code-claim" href="' + esc(i.html_url) + '" title="打开 Issue，在右侧 Assignees 点 assign yourself">⬜ 认领</a>')) + '</td>' +
           '<td>' + (who || '') + '</td>' +
           '<td>' + esc(field(i.body, '类型')) + '</td>' +
